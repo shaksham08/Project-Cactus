@@ -6,6 +6,11 @@ This repo is easiest to deploy with:
 - Backend: AWS App Runner
 - Database: MongoDB Atlas or any managed MongoDB URI you already use
 
+Config files already added in repo root:
+
+- `amplify.yml` for frontend builds
+- `apprunner.yaml` for backend builds
+
 This is the simplest production path for the current codebase.
 
 ## 1. What gets deployed
@@ -25,6 +30,8 @@ This is the simplest production path for the current codebase.
 ### 2.1 Prepare the backend
 
 App Runner can deploy directly from GitHub.
+
+This repo already includes `apprunner.yaml`, so choose configuration from source code when prompted.
 
 Build settings for the backend service:
 
@@ -80,7 +87,9 @@ In AWS Amplify:
 
 ### 3.2 Amplify build settings
 
-Use this build config:
+This repo already includes `amplify.yml` in the root. Amplify will detect and use it automatically.
+
+Reference build config:
 
 ```yaml
 version: 1
@@ -253,3 +262,70 @@ If you want, the next useful step is either:
 1. I create an `apprunner.yaml` for the backend and an `amplify.yml` for the frontend
 2. I walk you through the exact AWS console steps screen by screen
 3. I help you choose between App Runner, EC2, ECS, and Elastic Beanstalk
+
+## 14. Console walkthrough (copy-paste flow)
+
+### 14.1 Create backend service (App Runner)
+
+1. Open AWS Console -> App Runner -> Create service.
+2. Source and deployment:
+
+- Source: Source code repository
+- Provider: GitHub
+- Repository: `shaksham08/Project-Cactus`
+- Branch: `main`
+- Deployment trigger: Automatic (recommended)
+
+3. Configuration:
+
+- Use configuration file: Yes
+- Config file path: `apprunner.yaml`
+
+4. Service settings:
+
+- Service name: `project-cactus-backend`
+- Port: leave as defined in file (`5000`)
+
+5. Environment variables (runtime):
+
+- `PORT=5000`
+- `MONGODB_URI=<your-uri>`
+- `JWT_SECRET=<your-secret>`
+- `CLIENT_URL=https://placeholder.example.com` (update after frontend deploy)
+
+6. Create service and wait until status is Running.
+7. Open `https://<apprunner-domain>/api/health` and confirm success response.
+
+### 14.2 Create frontend app (Amplify)
+
+1. Open AWS Console -> Amplify -> Host web app.
+2. Connect GitHub repo:
+
+- Repository: `shaksham08/Project-Cactus`
+- Branch: `main`
+
+3. App settings:
+
+- Monorepo app root: `cactus-frontend`
+- Build settings: keep default so Amplify reads root `amplify.yml`
+
+4. Environment variables:
+
+- `VITE_API_BASE_URL=https://<apprunner-domain>/api`
+
+5. Save and deploy.
+6. Wait for build to complete and open the Amplify app URL.
+
+### 14.3 Final CORS wiring
+
+1. Copy Amplify frontend URL (for example `https://main.xxxxxx.amplifyapp.com`).
+2. Go back to App Runner -> your backend service -> Configuration -> Runtime environment variables.
+3. Update `CLIENT_URL` to the exact Amplify URL.
+4. Redeploy backend service.
+
+### 14.4 Smoke test
+
+1. Open frontend URL.
+2. Register and log in.
+3. Create todo, note, and one test.
+4. Confirm no CORS or network errors in browser dev tools.

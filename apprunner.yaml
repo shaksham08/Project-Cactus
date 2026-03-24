@@ -1,0 +1,16 @@
+version: 1.0
+runtime: nodejs18
+build:
+  commands:
+    build:
+      - cd cactus-backend
+      - npm install
+run:
+  runtime-version: 18
+  command: cd cactus-backend && npm start
+  network:
+    port: 5000
+    env: PORT
+  env:
+    - name: NODE_ENV
+      value: production
