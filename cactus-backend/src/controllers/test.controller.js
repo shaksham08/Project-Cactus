@@ -174,6 +174,93 @@ const listAttempts = asyncHandler(async (request, response) => {
   });
 });
 
+const getAttemptById = asyncHandler(async (request, response) => {
+  const attempt = await TestAttempt.findById(request.params.attemptId)
+    .populate('user', 'fullName email')
+    .populate('test');
+
+  if (!attempt) {
+    throw new ApiError(404, 'Attempt not found.');
+  }
+
+  const attemptUserId = attempt.user?._id?.toString();
+  const testOwnerId = attempt.test?.owner?.toString();
+  const requesterId = request.user._id.toString();
+  const isAttemptOwner = attemptUserId === requesterId;
+  const isTestOwner = testOwnerId === requesterId;
+
+  if (!isAttemptOwner && !isTestOwner) {
+    throw new ApiError(403, 'You do not have access to this attempt.');
+  }
+
+  const answerMap = new Map(
+    (attempt.answers || []).map((answer) => [
+      String(answer.questionId),
+      answer,
+    ])
+  );
+
+  const review = (attempt.test?.questions || []).map((question, index) => {
+    const questionId = String(question._id);
+    const answer = answerMap.get(questionId);
+    const selectedOptionId = answer?.selectedOptionId
+      ? String(answer.selectedOptionId)
+      : null;
+    const correctOptionId = answer?.correctOptionId
+      ? String(answer.correctOptionId)
+      : null;
+
+    const selectedOption = selectedOptionId
+      ? question.options.find((option) => String(option._id) === selectedOptionId)
+      : null;
+    const correctOption = correctOptionId
+      ? question.options.find((option) => String(option._id) === correctOptionId)
+      : question.options.find((option) => option.isCorrect);
+
+    return {
+      questionNumber: index + 1,
+      questionId,
+      question: question.question,
+      explanation: answer?.explanation || question.explanation || '',
+      isCorrect: Boolean(answer?.isCorrect),
+      selectedOptionId,
+      correctOptionId: correctOption ? String(correctOption._id) : null,
+      selectedOptionText: selectedOption?.text || null,
+      correctOptionText: correctOption?.text || null,
+      options: question.options.map((option) => ({
+        _id: String(option._id),
+        text: option.text,
+      })),
+    };
+  });
+
+  response.status(200).json({
+    success: true,
+    data: {
+      attempt: {
+        _id: attempt._id,
+        createdAt: attempt.createdAt,
+        score: attempt.score,
+        correctAnswers: attempt.correctAnswers,
+        incorrectAnswers: attempt.incorrectAnswers,
+        totalQuestions: attempt.totalQuestions,
+      },
+      test: {
+        _id: attempt.test?._id,
+        title: attempt.test?.title,
+        category: attempt.test?.category,
+        difficulty: attempt.test?.difficulty,
+      },
+      user: {
+        _id: attempt.user?._id,
+        fullName: attempt.user?.fullName,
+        email: attempt.user?.email,
+      },
+      review,
+    },
+  });
+});
+
 const getLeaderboard = asyncHandler(async (request, response) => {
   const test = await Test.findById(request.params.testId).populate('owner', 'fullName email');
 
@@ -222,5 +309,6 @@ module.exports = {
   deleteTest,
   submitTest,
   listAttempts,
+  getAttemptById,
   getLeaderboard,
 };

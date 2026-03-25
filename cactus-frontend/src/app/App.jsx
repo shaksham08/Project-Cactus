@@ -5,6 +5,9 @@ import { useAuth } from "../context/AuthContext";
 
 const AuthPage = lazy(() => import("../features/auth/AuthPage"));
 const DashboardPage = lazy(() => import("../features/dashboard/DashboardPage"));
+const TestResultPage = lazy(
+  () => import("../features/dashboard/TestResultPage"),
+);
 
 const PageFallback = () => (
   <Center minH="100vh">
@@ -67,6 +70,16 @@ const App = () => (
           <ProtectedRoute>
             <Suspense fallback={<PageFallback />}>
               <DashboardPage />
+            </Suspense>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/tests/attempts/:attemptId"
+        element={
+          <ProtectedRoute>
+            <Suspense fallback={<PageFallback />}>
+              <TestResultPage />
             </Suspense>
           </ProtectedRoute>
         }

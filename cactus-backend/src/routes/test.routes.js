@@ -8,6 +8,7 @@ const {
   deleteTest,
   submitTest,
   listAttempts,
+  getAttemptById,
   getLeaderboard,
 } = require('../controllers/test.controller');
 const { requireAuth } = require('../middlewares/auth.middleware');
@@ -19,6 +20,7 @@ const router = express.Router();
 router.use(requireAuth);
 
 router.get('/attempts/history', listAttempts);
+router.get('/attempts/:attemptId', getAttemptById);
 router.get('/:testId/leaderboard', getLeaderboard);
 router.get('/', listTests);
 router.post('/', createTestValidator, validate, createTest);

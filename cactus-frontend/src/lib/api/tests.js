@@ -30,6 +30,11 @@ export const listAttempts = async () => {
   return response.data?.data || []
 }
 
+export const getAttemptDetails = async (attemptId) => {
+  const response = await api.get(`/tests/attempts/${attemptId}`)
+  return response.data?.data
+}
+
 export const deleteTest = async (testId) => {
   await api.delete(`/tests/${testId}`)
 }
