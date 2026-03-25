@@ -15,6 +15,7 @@ const questionRules = [
 
 const createTestValidator = [
   body('title').trim().notEmpty().withMessage('Test title is required.'),
+  body('hasTimer').optional().isBoolean().withMessage('hasTimer must be a boolean.'),
   body('difficulty')
     .optional()
     .isIn(['beginner', 'intermediate', 'advanced'])
@@ -25,6 +26,7 @@ const createTestValidator = [
 
 const updateTestValidator = [
   body('title').optional().trim().notEmpty().withMessage('Test title cannot be empty.'),
+  body('hasTimer').optional().isBoolean().withMessage('hasTimer must be a boolean.'),
   body('difficulty')
     .optional()
     .isIn(['beginner', 'intermediate', 'advanced'])

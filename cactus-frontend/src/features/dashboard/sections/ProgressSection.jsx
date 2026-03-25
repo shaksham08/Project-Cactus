@@ -26,6 +26,7 @@ import {
   updateProgress,
 } from "../../../lib/api/progress";
 import { getErrorMessage } from "../../../lib/api/client";
+import { HappyCactus } from "../CactusSVGs";
 
 const schema = z.object({
   subject: z.string().min(1, "Subject is required"),
@@ -253,7 +254,18 @@ const ProgressSection = () => {
               </Box>
             ))}
             {!items.length ? (
-              <Text color="gray.400">No progress items yet.</Text>
+              <Box textAlign="center" py={6}>
+                <Box
+                  display="flex"
+                  justifyContent="center"
+                  transform="scale(0.8)"
+                >
+                  <HappyCactus />
+                </Box>
+                <Text color="gray.400" mt={2}>
+                  No progress items yet. Start tracking!
+                </Text>
+              </Box>
             ) : null}
           </Stack>
         </CardBody>

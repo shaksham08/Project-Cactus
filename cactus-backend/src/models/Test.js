@@ -70,6 +70,10 @@ const testSchema = new mongoose.Schema(
       enum: ['beginner', 'intermediate', 'advanced'],
       default: 'beginner',
     },
+    hasTimer: {
+      type: Boolean,
+      default: false,
+    },
     durationInMinutes: {
       type: Number,
       default: 15,

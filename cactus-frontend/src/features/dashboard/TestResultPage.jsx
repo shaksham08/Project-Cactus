@@ -19,6 +19,7 @@ import CactusShell from "../../components/layout/CactusShell";
 import { useAuth } from "../../context/AuthContext";
 import { getErrorMessage } from "../../lib/api/client";
 import { getAttemptDetails } from "../../lib/api/tests";
+import { HappyCactus } from "./CactusSVGs";
 
 const TestResultPage = () => {
   const { attemptId } = useParams();
@@ -85,7 +86,7 @@ const TestResultPage = () => {
       onLogout={logout}
     >
       <Stack spacing={5}>
-        <HStack justify="space-between" align="center" wrap="wrap">
+        <HStack justify="space-between" align="center" wrap="wrap" spacing={8}>
           <Box>
             <Heading size="lg">
               {details?.test?.title || "Attempt Result"}
@@ -95,6 +96,9 @@ const TestResultPage = () => {
                 ? `Attempted by ${details?.user?.fullName || details?.user?.email}`
                 : "Attempt details"}
             </Text>
+          </Box>
+          <Box display="flex" justifyContent="center">
+            <HappyCactus />
           </Box>
           <Button variant="outline" onClick={() => navigate("/")}>
             Back To Dashboard

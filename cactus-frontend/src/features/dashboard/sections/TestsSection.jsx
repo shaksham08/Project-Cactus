@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Accordion,
@@ -41,7 +41,6 @@ import {
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import {
   createTest,
-  getTest,
   getTestLeaderboard,
   listAttempts,
   listTests,
@@ -50,6 +49,8 @@ import {
 } from "../../../lib/api/tests";
 import { getErrorMessage } from "../../../lib/api/client";
 import { useAuth } from "../../../context/AuthContext";
+import ExitConfirmationModal from "../ExitConfirmationModal";
+import { CheeringCactus, ThinkingCactus } from "../CactusSVGs";
 
 const blankOption = () => ({ text: "", isCorrect: false });
 
@@ -75,6 +76,11 @@ const TestsSection = () => {
   const [answers, setAnswers] = useState({});
   const [lastResult, setLastResult] = useState(null);
   const [leaderboard, setLeaderboard] = useState([]);
+  const [remainingSeconds, setRemainingSeconds] = useState(null);
+  const [hasShownFiveMinuteWarning, setHasShownFiveMinuteWarning] =
+    useState(false);
+  const [isSubmittingTest, setIsSubmittingTest] = useState(false);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   const form = useForm({
     defaultValues: {
@@ -82,6 +88,7 @@ const TestsSection = () => {
       description: "",
       category: "general",
       difficulty: "beginner",
+      hasTimer: false,
       durationInMinutes: 15,
       isPublished: true,
       questions: [blankQuestion()],
@@ -98,6 +105,11 @@ const TestsSection = () => {
     name: "questions",
   });
 
+  const watchedHasTimer = useWatch({
+    control: form.control,
+    name: "hasTimer",
+  });
+
   const userId = user?._id || user?.id;
 
   const formatMarksAndPercentage = (correctAnswers, totalQuestions, score) => {
@@ -108,7 +120,22 @@ const TestsSection = () => {
     return `${correctAnswers}/${totalQuestions} (${score}%)`;
   };
 
-  const refresh = async () => {
+  const formatSeconds = (totalSeconds) => {
+    if (!Number.isFinite(totalSeconds) || totalSeconds < 0) {
+      return "00:00";
+    }
+
+    const minutes = Math.floor(totalSeconds / 60)
+      .toString()
+      .padStart(2, "0");
+    const seconds = Math.floor(totalSeconds % 60)
+      .toString()
+      .padStart(2, "0");
+
+    return `${minutes}:${seconds}`;
+  };
+
+  const refresh = useCallback(async () => {
     try {
       const [testsData, attemptsData] = await Promise.all([
         listTests(),
@@ -119,7 +146,7 @@ const TestsSection = () => {
     } catch (error) {
       toast({ title: getErrorMessage(error), status: "error" });
     }
-  };
+  }, [toast]);
 
   useEffect(() => {
     let isMounted = true;
@@ -269,13 +296,19 @@ const TestsSection = () => {
   const handleCreateTest = async (values) => {
     const tempId = `tmp-${crypto.randomUUID()}`;
     const publishNow = values.isPublished !== false;
+    const hasTimer = Boolean(values.hasTimer);
+    const durationInMinutes = hasTimer
+      ? Math.max(1, Number(values.durationInMinutes) || 15)
+      : 15;
+
     const optimisticTest = {
       _id: tempId,
       title: values.title,
       description: values.description,
       category: values.category,
       difficulty: values.difficulty,
-      durationInMinutes: values.durationInMinutes,
+      hasTimer,
+      durationInMinutes,
       questions: values.questions,
       isPublished: publishNow,
       owner: {
@@ -291,6 +324,8 @@ const TestsSection = () => {
     try {
       const created = await createTest({
         ...values,
+        hasTimer,
+        durationInMinutes,
         isPublished: publishNow,
         questions: values.questions.map((question) => ({
           ...question,
@@ -309,6 +344,7 @@ const TestsSection = () => {
         description: "",
         category: "general",
         difficulty: "beginner",
+        hasTimer: false,
         durationInMinutes: 15,
         isPublished: true,
         questions: [blankQuestion()],
@@ -326,49 +362,121 @@ const TestsSection = () => {
       return;
     }
 
-    try {
-      toast({ title: "Loading test", status: "info", duration: 1200 });
-      const [test, leaderboardData] = await Promise.all([
-        getTest(selectedTestId),
-        getTestLeaderboard(selectedTestId),
-      ]);
-      setPlayTest(test);
-      setLeaderboard(leaderboardData.attempts || []);
-      setAnswers({});
-      setLastResult(null);
-      toast({ title: "Test ready", status: "success" });
-    } catch (error) {
-      toast({ title: getErrorMessage(error), status: "error" });
-    }
+    navigate(`/tests/${selectedTestId}/attempt`);
   };
 
-  const submitActiveTest = async () => {
-    if (!playTest) {
+  const submitActiveTest = useCallback(
+    async (options = {}) => {
+      if (!playTest || isSubmittingTest) {
+        return;
+      }
+
+      const { isAutoSubmit = false } = options;
+
+      const payload = {
+        answers: Object.entries(answers).map(([questionId, optionId]) => ({
+          questionId,
+          optionId,
+        })),
+      };
+
+      try {
+        setIsSubmittingTest(true);
+        toast({
+          title: isAutoSubmit
+            ? "Time is up, auto-submitting..."
+            : "Submitting answers",
+          status: "info",
+          duration: 1200,
+        });
+        const result = await submitTest(playTest._id, payload);
+        setLastResult(result);
+        await refresh();
+        const leaderboardData = await getTestLeaderboard(playTest._id);
+        setLeaderboard(leaderboardData.attempts || []);
+        toast({
+          title: `Scored ${formatMarksAndPercentage(result.correctAnswers, result.totalQuestions, result.score)}`,
+          status: "success",
+        });
+      } catch (error) {
+        toast({ title: getErrorMessage(error), status: "error" });
+      } finally {
+        setIsSubmittingTest(false);
+      }
+    },
+    [answers, isSubmittingTest, playTest, refresh, toast],
+  );
+
+  useEffect(() => {
+    if (!playTest?.hasTimer || lastResult || remainingSeconds === null) {
       return;
     }
 
-    const payload = {
-      answers: Object.entries(answers).map(([questionId, optionId]) => ({
-        questionId,
-        optionId,
-      })),
+    if (remainingSeconds === 300 && !hasShownFiveMinuteWarning) {
+      setHasShownFiveMinuteWarning(true);
+      toast({
+        title: "5 minutes remaining",
+        status: "warning",
+        duration: 2000,
+      });
+    }
+
+    if (remainingSeconds === 0) {
+      void submitActiveTest({ isAutoSubmit: true });
+      return;
+    }
+
+    const intervalId = setInterval(() => {
+      setRemainingSeconds((prev) => {
+        if (prev === null) {
+          return prev;
+        }
+
+        return Math.max(prev - 1, 0);
+      });
+    }, 1000);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [
+    hasShownFiveMinuteWarning,
+    lastResult,
+    playTest?.hasTimer,
+    remainingSeconds,
+    submitActiveTest,
+    toast,
+  ]);
+
+  // Browser unload protection and back button protection for modal-based test-taking
+  useEffect(() => {
+    const hasInProgressAttempt =
+      Boolean(playTest) && !lastResult && !isSubmittingTest;
+
+    if (!hasInProgressAttempt) {
+      return;
+    }
+
+    const handleBeforeUnload = (event) => {
+      event.preventDefault();
+      event.returnValue = "";
     };
 
-    try {
-      toast({ title: "Submitting answers", status: "info", duration: 1200 });
-      const result = await submitTest(playTest._id, payload);
-      setLastResult(result);
-      await refresh();
-      const leaderboardData = await getTestLeaderboard(playTest._id);
-      setLeaderboard(leaderboardData.attempts || []);
-      toast({
-        title: `Scored ${formatMarksAndPercentage(result.correctAnswers, result.totalQuestions, result.score)}`,
-        status: "success",
-      });
-    } catch (error) {
-      toast({ title: getErrorMessage(error), status: "error" });
-    }
-  };
+    const handlePopState = (event) => {
+      event.preventDefault();
+      setShowExitConfirm(true);
+      // Push history again to prevent going back
+      window.history.pushState({ testAttempt: true }, "");
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [playTest, lastResult, isSubmittingTest]);
 
   const togglePublish = async (test) => {
     const previousTests = tests;
@@ -402,10 +510,43 @@ const TestsSection = () => {
     }
   };
 
-  const closeTest = () => {
+  const confirmCloseTest = () => {
+    const hasInProgressAttempt =
+      Boolean(playTest) && !lastResult && !isSubmittingTest;
+
+    if (!hasInProgressAttempt) {
+      return true;
+    }
+
+    setShowExitConfirm(true);
+    return false;
+  };
+
+  const handleConfirmExit = () => {
+    setShowExitConfirm(false);
     setPlayTest(null);
     setAnswers({});
     setLastResult(null);
+    setRemainingSeconds(null);
+    setHasShownFiveMinuteWarning(false);
+    setIsSubmittingTest(false);
+  };
+
+  const handleCancelExit = () => {
+    setShowExitConfirm(false);
+  };
+
+  const closeTest = () => {
+    if (!confirmCloseTest()) {
+      return;
+    }
+
+    setPlayTest(null);
+    setAnswers({});
+    setLastResult(null);
+    setRemainingSeconds(null);
+    setHasShownFiveMinuteWarning(false);
+    setIsSubmittingTest(false);
     // Keep leaderboard state visible after closing modal
   };
 
@@ -418,11 +559,22 @@ const TestsSection = () => {
               <CardBody>
                 <AccordionButton px={0} _hover={{ bg: "transparent" }}>
                   <Box flex="1" textAlign="left">
-                    <Heading size="md">Test Builder</Heading>
-                    <Text color="gray.400" mt={1}>
-                      Collapse this when you want the attempt area to take
-                      focus.
-                    </Text>
+                    <HStack justify="space-between" align="center">
+                      <Box>
+                        <Heading size="md">Test Builder</Heading>
+                        <Text color="gray.400" mt={1}>
+                          Collapse this when you want the attempt area to take
+                          focus.
+                        </Text>
+                      </Box>
+                      <Box
+                        display="flex"
+                        justifyContent="center"
+                        transform="scale(0.6)"
+                      >
+                        <ThinkingCactus />
+                      </Box>
+                    </HStack>
                   </Box>
                   <AccordionIcon />
                 </AccordionButton>
@@ -446,18 +598,41 @@ const TestsSection = () => {
                           />
                         </FormControl>
                         <FormControl>
-                          <FormLabel>Duration</FormLabel>
+                          <FormLabel>Duration (minutes)</FormLabel>
                           <Input
                             type="number"
                             min={1}
+                            isDisabled={!watchedHasTimer}
                             {...form.register("durationInMinutes", {
                               valueAsNumber: true,
                             })}
                           />
                         </FormControl>
+                        <FormControl
+                          display="flex"
+                          alignItems="center"
+                          gap={3}
+                          pt={{ base: 0, md: 8 }}
+                        >
+                          <Controller
+                            control={form.control}
+                            name="hasTimer"
+                            render={({ field: { value, onChange } }) => (
+                              <Checkbox
+                                colorScheme="green"
+                                isChecked={Boolean(value)}
+                                onChange={(event) =>
+                                  onChange(event.target.checked)
+                                }
+                              >
+                                Timed test
+                              </Checkbox>
+                            )}
+                          />
+                        </FormControl>
                       </SimpleGrid>
 
-                      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={3}>
+                      <SimpleGrid columns={{ base: 1, md: 1 }} spacing={3}>
                         <FormControl>
                           <FormLabel>Difficulty</FormLabel>
                           <Select {...form.register("difficulty")}>
@@ -679,7 +854,7 @@ const TestsSection = () => {
                   ))}
                 </Select>
                 <Button onClick={startTest} isDisabled={!selectedTestId}>
-                  Load Test
+                  Start Test
                 </Button>
                 {selectedTest &&
                 (selectedTest.owner?._id ||
@@ -777,8 +952,8 @@ const TestsSection = () => {
                   </Heading>
                   <Text color="gray.400">
                     {playTest
-                      ? "Focus on your test in the modal above."
-                      : "The builder can stay collapsed while this area becomes your main testing surface."}
+                      ? "You can continue your test from the dedicated attempt page."
+                      : "Test taking opens in a separate focused screen, like real exam platforms."}
                   </Text>
                 </Box>
               </Box>
@@ -792,9 +967,16 @@ const TestsSection = () => {
                 borderColor="whiteAlpha.300"
                 bg="blackAlpha.200"
               >
-                <Heading size="sm" mb={3}>
-                  Leaderboard
-                </Heading>
+                <HStack justify="space-between" align="center" mb={3}>
+                  <Heading size="sm">Leaderboard</Heading>
+                  <Box
+                    display="flex"
+                    justifyContent="center"
+                    transform="scale(0.7)"
+                  >
+                    <CheeringCactus />
+                  </Box>
+                </HStack>
                 <List spacing={3}>
                   {leaderboard.slice(0, 10).map((entry) => (
                     <ListItem
@@ -959,6 +1141,12 @@ const TestsSection = () => {
         size="4xl"
         isCentered
         scrollBehavior="inside"
+        closeOnEsc={
+          !(playTest && Object.keys(answers).length > 0 && !lastResult)
+        }
+        closeOnOverlayClick={
+          !(playTest && Object.keys(answers).length > 0 && !lastResult)
+        }
       >
         <ModalOverlay bg="blackAlpha.700" backdropFilter="blur(10px)" />
         <ModalContent
@@ -984,6 +1172,22 @@ const TestsSection = () => {
                 {playTest?.questions.length} Questions
               </Badge>
             </HStack>
+            {playTest?.hasTimer ? (
+              <HStack mt={3} spacing={2}>
+                <Badge
+                  colorScheme={remainingSeconds <= 300 ? "orange" : "green"}
+                >
+                  Time Left: {formatSeconds(remainingSeconds)}
+                </Badge>
+                <Text color="gray.400" fontSize="sm">
+                  Auto-submit when timer reaches 00:00
+                </Text>
+              </HStack>
+            ) : (
+              <Badge mt={3} colorScheme="gray" variant="subtle">
+                Untimed Test
+              </Badge>
+            )}
           </ModalHeader>
           <ModalCloseButton top={6} right={6} />
 
@@ -1082,11 +1286,10 @@ const TestsSection = () => {
                   <Button
                     colorScheme="green"
                     onClick={submitActiveTest}
-                    isDisabled={
-                      Object.keys(answers).length !== playTest?.questions.length
-                    }
+                    isDisabled={isSubmittingTest}
+                    isLoading={isSubmittingTest}
                   >
-                    Submit Answers
+                    {playTest?.hasTimer ? "Submit Now" : "Submit Answers"}
                   </Button>
                 </HStack>
               </HStack>
@@ -1150,6 +1353,12 @@ const TestsSection = () => {
           </Box>
         </ModalContent>
       </Modal>
+
+      <ExitConfirmationModal
+        isOpen={showExitConfirm}
+        onConfirm={handleConfirmExit}
+        onCancel={handleCancelExit}
+      />
     </>
   );
 };

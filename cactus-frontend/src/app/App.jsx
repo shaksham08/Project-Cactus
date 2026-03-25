@@ -8,6 +8,9 @@ const DashboardPage = lazy(() => import("../features/dashboard/DashboardPage"));
 const TestResultPage = lazy(
   () => import("../features/dashboard/TestResultPage"),
 );
+const TestAttemptPage = lazy(
+  () => import("../features/dashboard/TestAttemptPage"),
+);
 
 const PageFallback = () => (
   <Center minH="100vh">
@@ -80,6 +83,16 @@ const App = () => (
           <ProtectedRoute>
             <Suspense fallback={<PageFallback />}>
               <TestResultPage />
+            </Suspense>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/tests/:testId/attempt"
+        element={
+          <ProtectedRoute>
+            <Suspense fallback={<PageFallback />}>
+              <TestAttemptPage />
             </Suspense>
           </ProtectedRoute>
         }

@@ -18,6 +18,7 @@ import {
   Textarea,
   useToast,
 } from "@chakra-ui/react";
+import { CheeringCactus } from "../CactusSVGs";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -297,6 +298,17 @@ const TodosSection = () => {
                     <HStack spacing={3}>
                       <Circle size="10px" bg={column.accent} />
                       <Text fontWeight="semibold">{column.title}</Text>
+                      {column.key === "completed" && column.items.length > 0 ? (
+                        <Box
+                          transform="scale(0.35)"
+                          transformOrigin="left center"
+                          h="50px"
+                          w="45px"
+                          overflow="hidden"
+                        >
+                          <CheeringCactus />
+                        </Box>
+                      ) : null}
                     </HStack>
                     <Badge colorScheme="green">{column.items.length}</Badge>
                   </HStack>
