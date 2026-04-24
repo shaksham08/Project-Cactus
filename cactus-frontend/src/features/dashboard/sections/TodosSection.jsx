@@ -47,12 +47,25 @@ const columns = [
 const TodosSection = () => {
   const [todos, setTodos] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [expandedTodos, setExpandedTodos] = useState(new Set());
   const toast = useToast();
   const tempIdCounterRef = useRef(0);
 
   const getTempId = () => {
     tempIdCounterRef.current += 1;
     return `tmp-${tempIdCounterRef.current}`;
+  };
+
+  const toggleExpanded = (todoId) => {
+    setExpandedTodos((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(todoId)) {
+        newSet.delete(todoId);
+      } else {
+        newSet.add(todoId);
+      }
+      return newSet;
+    });
   };
 
   const form = useForm({
@@ -324,12 +337,31 @@ const TodosSection = () => {
                         borderColor="whiteAlpha.200"
                       >
                         <HStack justify="space-between" align="start" mb={2}>
-                          <Box>
+                          <Box flex="1">
                             <Text fontWeight="bold">{todo.title}</Text>
                             {todo.description ? (
-                              <Text color="gray.400" fontSize="sm" mt={1}>
-                                {todo.description}
-                              </Text>
+                              <Box mt={1}>
+                                <Text color="gray.400" fontSize="sm">
+                                  {expandedTodos.has(todo._id)
+                                    ? todo.description
+                                    : todo.description.length > 100
+                                      ? `${todo.description.substring(0, 100)}...`
+                                      : todo.description}
+                                </Text>
+                                {todo.description.length > 100 && (
+                                  <Button
+                                    size="xs"
+                                    variant="link"
+                                    color="blue.300"
+                                    mt={1}
+                                    onClick={() => toggleExpanded(todo._id)}
+                                  >
+                                    {expandedTodos.has(todo._id)
+                                      ? "Show less"
+                                      : "Show more"}
+                                  </Button>
+                                )}
+                              </Box>
                             ) : null}
                           </Box>
                           <Badge
