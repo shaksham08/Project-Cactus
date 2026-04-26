@@ -1,0 +1,263 @@
+{
+  "title": "Networking for DevOps Interview Practice Test",
+  "description": "Basic to medium level MCQs covering networking concepts essential for DevOps engineers.",
+  "category": "software_engineering",
+  "difficulty": "intermediate",
+  "hasTimer": true,
+  "durationInMinutes": 35,
+  "isPublished": false,
+  "questions": [
+    {
+      "question": "What is an IP address?",
+      "explanation": "An IP address uniquely identifies a device on a network.",
+      "options": [
+        { "text": "A domain name", "isCorrect": false },
+        { "text": "Unique identifier for a device on a network", "isCorrect": true },
+        { "text": "A type of protocol", "isCorrect": false },
+        { "text": "A hardware component", "isCorrect": false }
+      ]
+    },
+    {
+      "question": "What does DNS stand for?",
+      "explanation": "DNS translates domain names into IP addresses.",
+      "options": [
+        { "text": "Dynamic Network Service", "isCorrect": false },
+        { "text": "Domain Name System", "isCorrect": true },
+        { "text": "Data Network Service", "isCorrect": false },
+        { "text": "Distributed Name Server", "isCorrect": false }
+      ]
+    },
+    {
+      "question": "What is the purpose of a subnet mask?",
+      "explanation": "It determines the network and host portions of an IP address.",
+      "options": [
+        { "text": "Encrypt data", "isCorrect": false },
+        { "text": "Divide network and host portions", "isCorrect": true },
+        { "text": "Assign IP addresses", "isCorrect": false },
+        { "text": "Resolve domain names", "isCorrect": false }
+      ]
+    },
+    {
+      "question": "What is HTTP?",
+      "explanation": "HTTP is a protocol used for transferring web data.",
+      "options": [
+        { "text": "File transfer protocol", "isCorrect": false },
+        { "text": "Web communication protocol", "isCorrect": true },
+        { "text": "Email protocol", "isCorrect": false },
+        { "text": "Network hardware", "isCorrect": false }
+      ]
+    },
+    {
+      "question": "What is HTTPS?",
+      "explanation": "HTTPS is HTTP with encryption using SSL/TLS.",
+      "options": [
+        { "text": "Unsecured HTTP", "isCorrect": false },
+        { "text": "Secure HTTP with encryption", "isCorrect": true },
+        { "text": "File transfer protocol", "isCorrect": false },
+        { "text": "Database protocol", "isCorrect": false }
+      ]
+    },
+    {
+      "question": "What is TCP?",
+      "explanation": "TCP ensures reliable data transmission.",
+      "options": [
+        { "text": "Unreliable protocol", "isCorrect": false },
+        { "text": "Reliable connection-oriented protocol", "isCorrect": true },
+        { "text": "Hardware device", "isCorrect": false },
+        { "text": "Encryption method", "isCorrect": false }
+      ]
+    },
+    {
+      "question": "What is UDP?",
+      "explanation": "UDP is faster but unreliable.",
+      "options": [
+        { "text": "Reliable protocol", "isCorrect": false },
+        { "text": "Connectionless protocol", "isCorrect": true },
+        { "text": "Encryption protocol", "isCorrect": false },
+        { "text": "Web protocol", "isCorrect": false }
+      ]
+    },
+    {
+      "question": "What is a port?",
+      "explanation": "A port identifies a specific process/service on a system.",
+      "options": [
+        { "text": "IP address", "isCorrect": false },
+        { "text": "Communication endpoint", "isCorrect": true },
+        { "text": "Protocol", "isCorrect": false },
+        { "text": "Hardware interface", "isCorrect": false }
+      ]
+    },
+    {
+      "question": "Which port does HTTP use by default?",
+      "explanation": "HTTP typically uses port 80.",
+      "options": [
+        { "text": "443", "isCorrect": false },
+        { "text": "80", "isCorrect": true },
+        { "text": "22", "isCorrect": false },
+        { "text": "21", "isCorrect": false }
+      ]
+    },
+    {
+      "question": "Which port does HTTPS use?",
+      "explanation": "HTTPS uses port 443.",
+      "options": [
+        { "text": "80", "isCorrect": false },
+        { "text": "22", "isCorrect": false },
+        { "text": "443", "isCorrect": true },
+        { "text": "25", "isCorrect": false }
+      ]
+    },
+
+    {
+      "question": "What is SSH used for?",
+      "explanation": "SSH allows secure remote login.",
+      "options": [
+        { "text": "File transfer", "isCorrect": false },
+        { "text": "Secure remote access", "isCorrect": true },
+        { "text": "Email sending", "isCorrect": false },
+        { "text": "Web browsing", "isCorrect": false }
+      ]
+    },
+    {
+      "question": "What is NAT?",
+      "explanation": "NAT translates private IPs to public IPs.",
+      "options": [
+        { "text": "Network Address Translation", "isCorrect": true },
+        { "text": "Network Access Tool", "isCorrect": false },
+        { "text": "Name Address Table", "isCorrect": false },
+        { "text": "New Access Technology", "isCorrect": false }
+      ]
+    },
+    {
+      "question": "What is a load balancer?",
+      "explanation": "Distributes traffic across multiple servers.",
+      "options": [
+        { "text": "Firewall", "isCorrect": false },
+        { "text": "Traffic distributor", "isCorrect": true },
+        { "text": "Database", "isCorrect": false },
+        { "text": "Protocol", "isCorrect": false }
+      ]
+    },
+    {
+      "question": "What is a firewall?",
+      "explanation": "Controls incoming and outgoing network traffic.",
+      "options": [
+        { "text": "Router", "isCorrect": false },
+        { "text": "Security system for network traffic", "isCorrect": true },
+        { "text": "Switch", "isCorrect": false },
+        { "text": "Protocol", "isCorrect": false }
+      ]
+    },
+    {
+      "question": "What is a VPC?",
+      "explanation": "A Virtual Private Cloud is an isolated network in cloud.",
+      "options": [
+        { "text": "Public network", "isCorrect": false },
+        { "text": "Private virtual network in cloud", "isCorrect": true },
+        { "text": "Database service", "isCorrect": false },
+        { "text": "Storage system", "isCorrect": false }
+      ]
+    },
+    {
+      "question": "What is CIDR?",
+      "explanation": "CIDR defines IP address ranges.",
+      "options": [
+        { "text": "Protocol", "isCorrect": false },
+        { "text": "IP range notation", "isCorrect": true },
+        { "text": "Encryption method", "isCorrect": false },
+        { "text": "Routing table", "isCorrect": false }
+      ]
+    },
+    {
+      "question": "What is latency?",
+      "explanation": "Time delay in network communication.",
+      "options": [
+        { "text": "Bandwidth", "isCorrect": false },
+        { "text": "Delay in transmission", "isCorrect": true },
+        { "text": "Packet loss", "isCorrect": false },
+        { "text": "Throughput", "isCorrect": false }
+      ]
+    },
+    {
+      "question": "What is bandwidth?",
+      "explanation": "Maximum data transfer capacity.",
+      "options": [
+        { "text": "Delay", "isCorrect": false },
+        { "text": "Data transfer capacity", "isCorrect": true },
+        { "text": "Packet size", "isCorrect": false },
+        { "text": "Error rate", "isCorrect": false }
+      ]
+    },
+    {
+      "question": "What is packet loss?",
+      "explanation": "When packets fail to reach destination.",
+      "options": [
+        { "text": "Fast transfer", "isCorrect": false },
+        { "text": "Dropped packets", "isCorrect": true },
+        { "text": "Encrypted data", "isCorrect": false },
+        { "text": "Duplicate packets", "isCorrect": false }
+      ]
+    },
+    {
+      "question": "What is a proxy server?",
+      "explanation": "Acts as intermediary between client and server.",
+      "options": [
+        { "text": "Database", "isCorrect": false },
+        { "text": "Intermediate server", "isCorrect": true },
+        { "text": "Firewall", "isCorrect": false },
+        { "text": "Router", "isCorrect": false }
+      ]
+    },
+
+    {
+      "question": "What is DNS resolution?",
+      "explanation": "Process of converting domain to IP.",
+      "options": [
+        { "text": "IP to domain", "isCorrect": false },
+        { "text": "Domain to IP", "isCorrect": true },
+        { "text": "Encrypt data", "isCorrect": false },
+        { "text": "Route packets", "isCorrect": false }
+      ]
+    },
+    {
+      "question": "What is a reverse proxy?",
+      "explanation": "Handles requests on behalf of backend servers.",
+      "options": [
+        { "text": "Client proxy", "isCorrect": false },
+        { "text": "Server-side proxy", "isCorrect": true },
+        { "text": "Firewall", "isCorrect": false },
+        { "text": "Switch", "isCorrect": false }
+      ]
+    },
+    {
+      "question": "What is ICMP?",
+      "explanation": "Used for diagnostics like ping.",
+      "options": [
+        { "text": "Web protocol", "isCorrect": false },
+        { "text": "Diagnostic protocol", "isCorrect": true },
+        { "text": "File transfer", "isCorrect": false },
+        { "text": "Encryption", "isCorrect": false }
+      ]
+    },
+    {
+      "question": "What is ARP?",
+      "explanation": "Maps IP address to MAC address.",
+      "options": [
+        { "text": "Maps domain to IP", "isCorrect": false },
+        { "text": "Maps IP to MAC", "isCorrect": true },
+        { "text": "Encrypts packets", "isCorrect": false },
+        { "text": "Routes traffic", "isCorrect": false }
+      ]
+    },
+    {
+      "question": "What is a subnet?",
+      "explanation": "A smaller network within a larger network.",
+      "options": [
+        { "text": "Entire network", "isCorrect": false },
+        { "text": "Segment of network", "isCorrect": true },
+        { "text": "Protocol", "isCorrect": false },
+        { "text": "Device", "isCorrect": false }
+      ]
+    }
+  ]
+}
