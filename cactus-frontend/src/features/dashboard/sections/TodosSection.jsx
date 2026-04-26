@@ -11,11 +11,18 @@ import {
   Heading,
   HStack,
   Input,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalHeader,
+  ModalOverlay,
   Select,
   SimpleGrid,
   Stack,
   Text,
   Textarea,
+  useDisclosure,
   useToast,
 } from "@chakra-ui/react";
 import { CheeringCactus } from "../CactusSVGs";
@@ -47,7 +54,8 @@ const columns = [
 const TodosSection = () => {
   const [todos, setTodos] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [expandedTodos, setExpandedTodos] = useState(new Set());
+  const [selectedTodo, setSelectedTodo] = useState(null);
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
   const tempIdCounterRef = useRef(0);
 
@@ -56,16 +64,9 @@ const TodosSection = () => {
     return `tmp-${tempIdCounterRef.current}`;
   };
 
-  const toggleExpanded = (todoId) => {
-    setExpandedTodos((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(todoId)) {
-        newSet.delete(todoId);
-      } else {
-        newSet.add(todoId);
-      }
-      return newSet;
-    });
+  const openTodoModal = (todo) => {
+    setSelectedTodo(todo);
+    onOpen();
   };
 
   const form = useForm({
@@ -342,11 +343,9 @@ const TodosSection = () => {
                             {todo.description ? (
                               <Box mt={1}>
                                 <Text color="gray.400" fontSize="sm">
-                                  {expandedTodos.has(todo._id)
-                                    ? todo.description
-                                    : todo.description.length > 100
-                                      ? `${todo.description.substring(0, 100)}...`
-                                      : todo.description}
+                                  {todo.description.length > 100
+                                    ? `${todo.description.substring(0, 100)}...`
+                                    : todo.description}
                                 </Text>
                                 {todo.description.length > 100 && (
                                   <Button
@@ -354,11 +353,9 @@ const TodosSection = () => {
                                     variant="link"
                                     color="blue.300"
                                     mt={1}
-                                    onClick={() => toggleExpanded(todo._id)}
+                                    onClick={() => openTodoModal(todo)}
                                   >
-                                    {expandedTodos.has(todo._id)
-                                      ? "Show less"
-                                      : "Show more"}
+                                    View Details
                                   </Button>
                                 )}
                               </Box>
@@ -426,6 +423,50 @@ const TodosSection = () => {
           </CardBody>
         </Card>
       </SimpleGrid>
+
+      <Modal isOpen={isOpen} onClose={onClose} size="2xl">
+        <ModalOverlay />
+        <ModalContent bg="gray.800" color="white" maxW="90vw">
+          <ModalHeader>{selectedTodo?.title}</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={6}>
+            <Stack spacing={4}>
+              <Box>
+                <Text fontWeight="bold" mb={2}>
+                  Description
+                </Text>
+                <Text color="gray.300" lineHeight="1.6" whiteSpace="pre-wrap">
+                  {selectedTodo?.description}
+                </Text>
+              </Box>
+              <HStack>
+                <Badge
+                  colorScheme={
+                    selectedTodo?.priority === "high"
+                      ? "red"
+                      : selectedTodo?.priority === "medium"
+                        ? "yellow"
+                        : "green"
+                  }
+                >
+                  {selectedTodo?.priority} priority
+                </Badge>
+                <Badge colorScheme="blue">{selectedTodo?.status}</Badge>
+              </HStack>
+              {selectedTodo?.dueDate && (
+                <Box>
+                  <Text fontWeight="bold" mb={1}>
+                    Due Date
+                  </Text>
+                  <Text color="gray.300">
+                    {new Date(selectedTodo.dueDate).toLocaleString()}
+                  </Text>
+                </Box>
+              )}
+            </Stack>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </Stack>
   );
 };
